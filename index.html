@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amikacin Dosing Calculator - RNOH</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .radio-option input[type="radio"] {
+            width: auto;
+        }
+        
+        #crcl-input {
+            display: none;
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        #result {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+        
+        .dose-display {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            margin: 15px 0;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin-top: 15px;
+            border-radius: 4px;
+            color: #856404;
+        }
+        
+        .steps {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        .steps h3 {
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+        
+        .steps ol {
+            margin-left: 20px;
+        }
+        
+        .steps li {
+            margin-bottom: 8px;
+            color: #666;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Amikacin Dosing Calculator</h1>
+        <p class="subtitle">RNOH Guidelines - Extended Interval Dosing</p>
+        
+        <form id="calculator-form">
+            <div class="form-group">
+                <label for="gender">Gender</label>
+                <select id="gender" required>
+                    <option value="">Select...</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="height">Height (cm)</label>
+                <input type="number" id="height" step="0.1" min="100" max="250" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="weight">Weight (kg)</label>
+                <input type="number" id="weight" step="0.1" min="20" max="300" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Is renal function normal?</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="renal-yes" name="renal" value="yes" required>
+                        <label for="renal-yes" style="margin: 0;">Yes</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="renal-no" name="renal" value="no">
+                        <label for="renal-no" style="margin: 0;">No</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group" id="crcl-input">
+                <label for="crcl">Creatinine Clearance (ml/min)</label>
+                <input type="number" id="crcl" step="0.1" min="1" max="200">
+            </div>
+            
+            <button type="submit">Calculate Dose</button>
+        </form>
+        
+        <div id="result"></div>
+    </div>
+    
+    <script>
+        // Show/hide CrCl input based on renal function selection
+        document.querySelectorAll('input[name="renal"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const crclInput = document.getElementById('crcl-input');
+                if (e.target.value === 'no') {
+                    crclInput.style.display = 'block';
+                    document.getElementById('crcl').required = true;
+                } else {
+                    crclInput.style.display = 'none';
+                    document.getElementById('crcl').required = false;
+                }
+            });
+        });
+        
+        // Calculate IBW
+        function calculateIBW(heightCm, gender) {
+            const heightIn = heightCm / 2.54;
+            if (gender === 'male') {
+                return 50 + 2.3 * (heightIn - 60);
+            } else {
+                return 45.5 + 2.3 * (heightIn - 60);
+            }
+        }
+        
+        // Calculate dosing weight
+        function calculateDosingWeight(abw, ibw) {
+            if (abw <= ibw * 1.2) {
+                return { weight: abw, type: 'ABW' };
+            } else {
+                return { 
+                    weight: ibw + 0.4 * (abw - ibw), 
+                    type: 'CBW' 
+                };
+            }
+        }
+        
+        // Round to nearest 50
+        function roundToNearest50(dose) {
+            return Math.round(dose / 50) * 50;
+        }
+        
+        // Form submission
+        document.getElementById('calculator-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const gender = document.getElementById('gender').value;
+            const height = parseFloat(document.getElementById('height').value);
+            const weight = parseFloat(document.getElementById('weight').value);
+            const renalNormal = document.querySelector('input[name="renal"]:checked').value;
+            const crcl = renalNormal === 'yes' ? 100 : parseFloat(document.getElementById('crcl').value);
+            
+            // Calculate
+            const ibw = calculateIBW(height, gender);
+            const { weight: dosingWeight, type: weightType } = calculateDosingWeight(weight, ibw);
+            
+            let dose, rawDose;
+            if (crcl >= 20) {
+                rawDose = dosingWeight * 15;
+                dose = roundToNearest50(rawDose);
+            } else {
+                rawDose = dosingWeight * 7.5;
+                dose = Math.min(roundToNearest50(rawDose), 650);
+            }
+            
+            // Display results
+            const resultDiv = document.getElementById('result');
+            let html = `
+                <div class="dose-display">${dose} mg</div>
+                <p style="color: #666; font-size: 14px;">IV over 1 hour</p>
+            `;
+            
+            if (dose > 1300) {
+                html += `
+                    <div class="warning">
+                        ⚠️ Dose >1300mg - discuss with Microbiology first
+                    </div>
+                `;
+            }
+            
+            html += `
+                <div class="steps">
+                    <h3>Calculation Steps:</h3>
+                    <ol>
+                        <li>IBW = ${ibw.toFixed(1)} kg</li>
+                        <li>${weight > ibw * 1.2 
+                            ? `ABW (${weight} kg) > IBW × 1.2 (${(ibw * 1.2).toFixed(1)} kg) → Using CBW = ${dosingWeight.toFixed(1)} kg`
+                            : `ABW (${weight} kg) ≤ IBW × 1.2 (${(ibw * 1.2).toFixed(1)} kg) → Using ABW = ${dosingWeight.toFixed(1)} kg`
+                        }</li>
+                        <li>${crcl >= 20 
+                            ? `CrCl ≥20: Dose = ${dosingWeight.toFixed(1)} × 15 = ${rawDose.toFixed(0)} mg`
+                            : `CrCl <20: Dose = ${dosingWeight.toFixed(1)} × 7.5 = ${rawDose.toFixed(0)} mg`
+                        }</li>
+                        <li>Rounded to nearest 50mg = ${dose} mg</li>
+                    </ol>
+                </div>
+            `;
+            
+            resultDiv.innerHTML = html;
+            resultDiv.style.display = 'block';
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+    </script>
+</body>
+</html>
