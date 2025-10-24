@@ -155,6 +155,13 @@
             color: #666;
             line-height: 1.6;
         }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: left;
+            color: #999;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
@@ -205,6 +212,8 @@
         </form>
         
         <div id="result"></div>
+        
+        <div class="footer">J Eskander</div>
     </div>
     
     <script>
@@ -263,6 +272,12 @@
             const ibw = calculateIBW(height, gender);
             const { weight: dosingWeight, type: weightType } = calculateDosingWeight(weight, ibw);
             
+            // Calculate IBW formula display
+            const heightIn = (height / 2.54).toFixed(1);
+            const ibwFormula = gender === 'male' 
+                ? `50 + 2.3 × (${heightIn} - 60) = ${ibw.toFixed(1)} kg`
+                : `45.5 + 2.3 × (${heightIn} - 60) = ${ibw.toFixed(1)} kg`;
+            
             let dose, rawDose;
             if (crcl >= 20) {
                 rawDose = dosingWeight * 15;
@@ -291,7 +306,7 @@
                 <div class="steps">
                     <h3>Calculation Steps:</h3>
                     <ol>
-                        <li>IBW = ${ibw.toFixed(1)} kg</li>
+                        <li>IBW = ${ibwFormula}</li>
                         <li>${weight > ibw * 1.2 
                             ? `ABW (${weight} kg) > IBW × 1.2 (${(ibw * 1.2).toFixed(1)} kg) → Using CBW = ${dosingWeight.toFixed(1)} kg`
                             : `ABW (${weight} kg) ≤ IBW × 1.2 (${(ibw * 1.2).toFixed(1)} kg) → Using ABW = ${dosingWeight.toFixed(1)} kg`
