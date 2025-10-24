@@ -167,7 +167,7 @@
 <body>
     <div class="container">
         <h1>Amikacin Dosing Calculator</h1>
-        <p class="subtitle">RNOH Guidelines - Extended Interval Dosing</p>
+        <p class="subtitle">RNOH Guidelines</p>
         
         <form id="calculator-form">
             <div class="form-group">
@@ -212,8 +212,6 @@
         </form>
         
         <div id="result"></div>
-        
-        <div class="footer">J Eskander</div>
     </div>
     
     <script>
@@ -267,6 +265,20 @@
             const weight = parseFloat(document.getElementById('weight').value);
             const renalNormal = document.querySelector('input[name="renal"]:checked').value;
             const crcl = renalNormal === 'yes' ? 100 : parseFloat(document.getElementById('crcl').value);
+            
+            // Check height minimum
+            if (height < 155) {
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = `
+                    <div class="warning">
+                        ⚠️ Height less than 155cm (5ft 1in)<br><br>
+                        Please contact Microbiology or Pharmacy for dosing advice.
+                    </div>
+                `;
+                resultDiv.style.display = 'block';
+                resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                return;
+            }
             
             // Calculate
             const ibw = calculateIBW(height, gender);
